@@ -1,16 +1,38 @@
-# React + Vite
+# Shelvy – Self‑Hosted Goodreads‑Style Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A self‑hosted bookshelf app that lets you track your books, organize them into shelves, and browse them in a visual “books on a shelf” view. It’s built with React, Material UI, Tailwind CSS v4, a FastAPI backend, and MongoDB, and runs via Docker Compose.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- Visual bookshelf UI with horizontal, scrollable shelves showing book covers.
+- Custom shelves (Want to Read, Reading, Read, plus your own).
+- Add books via Open Library search (title/author/ISBN) with automatic metadata and covers.
+- Per‑book shelf assignment and editing via a mobile‑friendly bottom navigation and dialogs.
+- Self‑hosted stack:
+  - React + Vite + Material UI + Tailwind CSS v4 for the frontend.
+  - FastAPI backend with MongoDB (FARM‑style stack).
+  - Docker Compose for one‑command local deployment.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Frontend**
+  - React (Vite)
+  - Material UI (MUI) for components (BottomNavigation, Dialogs, ImageList).
+  - Tailwind CSS v4 (via `@tailwindcss/vite`) for utility styling.
+
+- **Backend**
+  - FastAPI (Python)
+  - Motor (async MongoDB driver)
+  - REST endpoints for managing books (and later shelves).
+
+- **Database**
+  - MongoDB running in Docker, document‑based storage for books.
+
+- **External APIs**
+  - Open Library Search API for book metadata and cover URLs.
+
+---
