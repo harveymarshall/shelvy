@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import BottomNav from './components/BottomNav.jsx';
 import ShelvesPage from './components/Shelves.jsx';
@@ -8,6 +8,8 @@ import ShelfDialog from './components/ShelfDialog.jsx';
 
 
 function App() {
+
+  const API_BASE = "http://localhost:8000";
   const [tab, setTab] = useState(2);
 
   // shelves data
@@ -20,6 +22,27 @@ function App() {
   // Books
   const [books, setBooks] = useState([]);
 
+  useEffect(() => {
+    const loadBooks = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/get-books`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!res.ok) {
+          console.error("GET failed", res.status);
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        setBooks(data);
+      } catch (e) {
+        console.error("Failed to retrieve books.", e);
+      }
+    };
+
+    loadBooks();
+  }, []);
+
   // dialog state
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
@@ -29,12 +52,10 @@ function App() {
     shelves[0]?.id ?? null
   );
 
-  // check book exists
-  const existing = selectedBook
-    ? books.find((b) => b.id === selectedBook.id)
-    : null;
+  //Set Dialog Mode
+  const [dialogMode, setDialogMode] = useState("add"); // "add" | "edit"
 
-  const dialogMode = existing ? "edit" : "add";
+
 
   const [addShelfOpen, setAddShelfOpen] = useState(false);
 
@@ -44,39 +65,84 @@ function App() {
   };
 
   // when user clicks "Add" in HomePage search result
-  const openAddDialog = (book) => {
-    setSelectedBook(book);
-    setSelectedShelfId(shelves[0]?.id ?? null);
+  const openAddSearchDialog = (book) => {
+    // Try to find existing by apiId (search result) or by id (shelves)
+    const existingBook =
+      books.find((b) => b.openLibId === book.id) || null;
+
+    if (existingBook) {
+      // Edit existing
+      setSelectedBook(existingBook);
+      setSelectedShelfId(existingBook.shelfId ?? shelves[0]?.id ?? null);
+      setDialogMode("edit");
+    } else {
+      // Add new
+      setSelectedBook(book);
+      setSelectedShelfId(shelves[0]?.id ?? null);
+      setDialogMode("add");
+    }
+
     setAddDialogOpen(true);
   };
+
+  const openEditForShelfBook = (savedBook) => {
+    setSelectedBook(savedBook);                           // book from `books` state
+    setSelectedShelfId(savedBook.shelfId ?? shelves[0]?.id ?? null);
+    setDialogMode("edit");
+    setAddDialogOpen(true);
+  };
+
 
   const closeAddDialog = () => {
     setAddDialogOpen(false);
     setSelectedBook(null);
   };
 
-  const handleConfirmAdd = () => {
-    console.log("handleConfirmAdd called", { selectedBook, selectedShelfId });
+  const handleConfirmAdd = async () => {
     if (!selectedBook || !selectedShelfId) return;
 
-    setBooks((prev) => {
-      if (prev.some((b) => b.id === selectedBook.id)) return prev;
-      return [...prev, { ...selectedBook, shelfId: selectedShelfId }];
-    });
+    const payload = {
+      title: selectedBook.title,
+      author: selectedBook.author,
+      isbn: selectedBook.isbn,
+      coverUrl: selectedBook.coverUrl,
+      shelfId: selectedShelfId,
+      openLibId: selectedBook.id,
+    };
 
-    closeAddDialog();
+    try {
+      const res = await fetch(`${API_BASE}/api/add-books`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        console.error("POST failed", res.status);
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const saved = await res.json();
+      setBooks((prev) => [...prev, saved]);
+    } catch (e) {
+      console.error("Failed to save book", e);
+    } finally {
+      closeAddDialog();
+    }
   };
 
   const handleConfirmUpdate = async () => {
-    console.log("handleConfirmUpdate called", { selectedBook, selectedShelfId });
     if (!selectedBook || !selectedShelfId) return;
 
-    // frontend state update
+    // local state
     setBooks((prev) =>
       prev.map((b) =>
-        b.id === selectedBook.id ? { ...b, shelfId: selectedShelfId } : b
+        b._id === selectedBook._id
+          ? { ...b, shelfId: selectedShelfId }
+          : b
       )
     );
+
+    // optional: PATCH to backend later
+
     closeAddDialog();
   };
 
@@ -87,11 +153,11 @@ function App() {
         shelves={shelves}
         books={books}
         onOpenAddShelf={() => setAddShelfOpen(true)}
-        onOpenBookView={openAddDialog} />}
+        onOpenBookView={openEditForShelfBook} />}
       {tab === 2 && <HomePage
         books={books}
         shelves={shelves}
-        onRequestAddBook={openAddDialog} />}
+        onRequestAddBook={openAddSearchDialog} />}
 
       {/* Bottom nav always visible */}
       <BottomNav value={tab} onChange={setTab} />
@@ -99,7 +165,7 @@ function App() {
       <ShelfDialog
         open={addShelfOpen}
         onClose={() => setAddShelfOpen(false)}
-        mode="add"
+        mode
         onConfirm={handleAddShelfConfirm}
       />
 
