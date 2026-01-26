@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 
 export default function HomePage({ books, shelves, onRequestAddBook }) {
+
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);

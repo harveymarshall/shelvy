@@ -3,9 +3,21 @@ version: "3.8"
 services:
   app:
     build: .
-    container_name: shelvy
+    container_name: shelvy_ui
     ports:
-      - "8080:80"           # http://localhost:8080
+      - "8080:80"         # React/nginx
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ./backend
+    container_name: shelvy_backend
+    environment:
+      MONGO_URL: mongodb://root:password@mongo:27017
+      MONGO_DB: shelvy
+    ports:
+      - "8000:8000"       # FastAPI
     depends_on:
       - mongo
 
@@ -17,10 +29,10 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: shelvy
-    ports:
-      - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    ports:
+      - "27017:27017"
 
 volumes:
   mongo-data:
