@@ -24,7 +24,6 @@ export default function AddBookDialog({
     if (!book) return null;
 
     const isEdit = mode === "edit";
-    console.log(isEdit)
 
     const buttonLabel = isEdit ? "Update book" : "Add book";
 
@@ -58,6 +57,9 @@ export default function AddBookDialog({
                                 ISBN: {book.isbn}
                             </Typography>
                         )}
+                        <Typography variant="body2" color="text.secondary">
+                            Pages: {book.pages}
+                        </Typography>
                     </Box>
                 </Box>
 

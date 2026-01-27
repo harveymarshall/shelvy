@@ -47,9 +47,51 @@ export default function HomePage({ books, shelves, onRequestAddBook }) {
         }
     };
 
-    const handleAddClick = (book) => {
-        onRequestAddBook(book); // delegate to parent (App) to store it
+
+    const handleAddClick = async (book) => {
+        let enrichedBook = { ...book };
+        enrichedBook.pages = 'N/A'; // Default
+
+        if (book.id.startsWith('/works/')) {
+            try {
+                const editionsUrl = `https://openlibrary.org${book.id}/editions.json?limit=1`;
+                const editionsRes = await fetch(editionsUrl);
+                if (!editionsRes.ok) {
+                    console.warn(`Editions fetch failed: ${editionsRes.status} for ${editionsUrl}`);
+                    onRequestAddBook(enrichedBook);
+                    return;
+                }
+                const editionsData = await editionsRes.json();
+                if (editionsData.docs?.[0]) {
+                    const editionUrl = `https://openlibrary.org${editionsData.docs[0].key}.json`;
+                    const editionRes = await fetch(editionUrl);
+                    if (!editionRes.ok) {
+                        console.warn(`Edition fetch failed: ${editionRes.status}`);
+                    } else {
+                        const editionData = await editionRes.json();
+                        enrichedBook.pages = editionData.number_of_pages || 'N/A';
+                        enrichedBook.editionKey = editionsData.docs[0].key;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch pages:', err);
+            }
+        } else if (book.id.startsWith('/books/')) {
+            try {
+                const editionUrl = `https://openlibrary.org${book.id}.json`;
+                const editionRes = await fetch(editionUrl);
+                if (editionRes.ok) {
+                    const editionData = await editionRes.json();
+                    enrichedBook.pages = editionData.number_of_pages || 'N/A';
+                }
+            } catch (err) {
+                console.error('Failed to fetch pages:', err);
+            }
+        }
+
+        onRequestAddBook(enrichedBook);
     };
+
 
     return (
         <Box className="flex flex-col gap-4 p-4 pb-24">
