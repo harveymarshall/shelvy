@@ -5,13 +5,15 @@ import {
     DialogActions,
     Button,
     Typography,
+    ToggleButtonGroup,
+    ToggleButton,
     MenuItem,
     TextField,
     Box
 } from "@mui/material";
 import CircularWithValueLabel from "./CircularProgressWithLabel";
 
-export default function AddBookDialog({
+export default function BookDialog({
     open,
     onClose,
     book,
@@ -78,8 +80,19 @@ export default function AddBookDialog({
                         </MenuItem>
                     ))}
                 </TextField>
+                <ToggleButtonGroup
+                    color="primary"
+                    exclusive
+                    aria-label="Platform"
+                >
+                    <ToggleButton value="pages">Pages</ToggleButton>
+                    <ToggleButton value="percentage">Percentage</ToggleButton>
+                </ToggleButtonGroup>
             </DialogContent>
             <DialogActions>
+                {isEdit && (
+                    <Button variant="contained" sx={{ bgcolor: "red" }}>Remove Book</Button>
+                )}
                 <Button onClick={onClose}>Cancel</Button>
                 <Button variant="contained" onClick={handleClick}>
                     {buttonLabel}

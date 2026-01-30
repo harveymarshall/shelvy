@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import BottomNav from './components/BottomNav.jsx';
 import ShelvesPage from './components/Shelves.jsx';
 import HomePage from './components/Home.jsx';
-import AddBookDialog from './components/AddDialog.jsx';
+import BookDialog from './components/BookDialog.jsx';
 import ShelfDialog from './components/ShelfDialog.jsx';
 
 
@@ -170,7 +170,7 @@ function App() {
         onConfirm={handleAddShelfConfirm}
       />
 
-      <AddBookDialog
+      <BookDialog
         open={addDialogOpen}
         onClose={closeAddDialog}
         book={selectedBook}

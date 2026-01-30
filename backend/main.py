@@ -1,3 +1,4 @@
+from http.client import HTTPException
 import logging
 import os
 
@@ -73,3 +74,13 @@ async def create_book(book: BookIn):
     result = await col.insert_one(doc)
     doc["_id"] = str(result.inserted_id)
     return doc
+
+
+@app.delete("/api/delete-book")
+async def delete_book(book: BookIn):
+    col = get_collection()
+    # Delete by unique id field from book
+    result = await col.delete_one({"id": book.id})  # Use book.id or equivalent
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Book not found")
+    return None
