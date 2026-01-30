@@ -10,6 +10,7 @@ class BookIn(BaseModel):
     coverUrl: Optional[str] = None
     shelfId: Optional[int] = None
     openLibId: Optional[str] = None
+    pages: Optional[int] = None
 
 
 class BookOut(BookIn):

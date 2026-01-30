@@ -49,48 +49,79 @@ export default function HomePage({ books, shelves, onRequestAddBook }) {
 
 
     const handleAddClick = async (book) => {
-        let enrichedBook = { ...book };
-        enrichedBook.pages = 'N/A'; // Default
+        let enrichedBook = { ...book, pages: 'N/A' };
 
-        if (book.id.startsWith('/works/')) {
-            try {
+        //console.log('[handleAddClick] incoming book:', book);
+
+        try {
+            if (book.id.startsWith('/works/')) {
+                // 1) Get first edition for this work
                 const editionsUrl = `https://openlibrary.org${book.id}/editions.json?limit=1`;
+                //console.log('[OpenLibrary] Fetching editions URL:', editionsUrl);
+
                 const editionsRes = await fetch(editionsUrl);
+                //console.log('[OpenLibrary] Editions response status:', editionsRes.status);
+
                 if (!editionsRes.ok) {
-                    console.warn(`Editions fetch failed: ${editionsRes.status} for ${editionsUrl}`);
+                    console.warn(`[OpenLibrary] Editions fetch failed: ${editionsRes.status} for ${editionsUrl}`);
                     onRequestAddBook(enrichedBook);
                     return;
                 }
+
                 const editionsData = await editionsRes.json();
-                if (editionsData.docs?.[0]) {
-                    const editionUrl = `https://openlibrary.org${editionsData.docs[0].key}.json`;
+                //console.log('[OpenLibrary] Editions JSON:', editionsData);
+
+                const firstEdition = editionsData.entries?.[0];
+                //console.log('[OpenLibrary] First edition entry:', firstEdition);
+
+                if (firstEdition?.key) {
+                    const editionUrl = `https://openlibrary.org${firstEdition.key}.json`;
+                    //console.log('[OpenLibrary] Fetching edition URL:', editionUrl);
+
                     const editionRes = await fetch(editionUrl);
+                    //console.log('[OpenLibrary] Edition response status:', editionRes.status);
+
                     if (!editionRes.ok) {
-                        console.warn(`Edition fetch failed: ${editionRes.status}`);
+                        console.warn(`[OpenLibrary] Edition fetch failed: ${editionRes.status} for ${editionUrl}`);
                     } else {
                         const editionData = await editionRes.json();
+                        //console.log('[OpenLibrary] Edition JSON:', editionData);
+
+                        //console.log('[OpenLibrary] Edition number_of_pages:', editionData.number_of_pages);
                         enrichedBook.pages = editionData.number_of_pages || 'N/A';
-                        enrichedBook.editionKey = editionsData.docs[0].key;
+                        enrichedBook.editionKey = firstEdition.key;
                     }
+                } else {
+                    console.warn('[OpenLibrary] No first edition entry found in editions.json');
                 }
-            } catch (err) {
-                console.error('Failed to fetch pages:', err);
-            }
-        } else if (book.id.startsWith('/books/')) {
-            try {
+            } else if (book.id.startsWith('/books/')) {
+                // Book is already an edition; fetch it directly
                 const editionUrl = `https://openlibrary.org${book.id}.json`;
+                //console.log('[OpenLibrary] Fetching edition URL (direct book):', editionUrl);
+
                 const editionRes = await fetch(editionUrl);
+                //console.log('[OpenLibrary] Direct edition response status:', editionRes.status);
+
                 if (editionRes.ok) {
                     const editionData = await editionRes.json();
+                    //console.log('[OpenLibrary] Direct edition JSON:', editionData);
+
+                    //console.log('[OpenLibrary] Direct edition number_of_pages:', editionData.number_of_pages);
                     enrichedBook.pages = editionData.number_of_pages || 'N/A';
+                    enrichedBook.editionKey = book.id;
+                } else {
+                    console.warn(`[OpenLibrary] Direct edition fetch failed: ${editionRes.status} for ${editionUrl}`);
                 }
-            } catch (err) {
-                console.error('Failed to fetch pages:', err);
             }
+        } catch (err) {
+            console.error('[OpenLibrary] Failed to fetch pages:', err);
         }
 
+        //console.log('[handleAddClick] Final enrichedBook:', enrichedBook);
         onRequestAddBook(enrichedBook);
     };
+
+
 
 
     return (

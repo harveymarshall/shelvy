@@ -108,6 +108,7 @@ function App() {
       coverUrl: selectedBook.coverUrl,
       shelfId: selectedShelfId,
       openLibId: selectedBook.id,
+      pages: selectedBook.pages
     };
 
     try {
