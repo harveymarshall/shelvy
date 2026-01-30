@@ -11,6 +11,7 @@ class BookIn(BaseModel):
     shelfId: Optional[int] = None
     openLibId: Optional[str] = None
     pages: Optional[int] = None
+    progress: Optional[int] = 0
 
 
 class BookOut(BookIn):

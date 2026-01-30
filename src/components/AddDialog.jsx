@@ -9,6 +9,7 @@ import {
     TextField,
     Box
 } from "@mui/material";
+import CircularWithValueLabel from "./CircularProgressWithLabel";
 
 export default function AddBookDialog({
     open,
@@ -47,6 +48,7 @@ export default function AddBookDialog({
                             className="w-20 h-28 object-cover rounded"
                         />
                     )}
+                    <CircularWithValueLabel value={book.progress || 0} />
                     <Box>
                         <Typography variant="h6">{book.title}</Typography>
                         <Typography variant="body2" color="text.secondary">
